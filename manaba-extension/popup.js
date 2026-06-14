@@ -1,6 +1,7 @@
 // Firebase プロジェクト設定
 const API_KEY = 'AIzaSyCKg4TQExbxyxZ6wMpaTCVrU1U6fXhqAX0';
 const PROJECT_ID = 'project-chickenmark2-001';
+const MANABA_UNSUBMITTED_URL = 'https://cit.manaba.jp/ct/home_library_query';
 
 const SIGN_IN_URL =
   `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${API_KEY}`;
@@ -253,6 +254,29 @@ function setStatus(msg, isError = false) {
   el.style.display = msg ? '' : 'none';
 }
 
+// ───── タブ読み込み待機 ─────
+
+function waitForTabLoad(tabId) {
+  return new Promise((resolve, reject) => {
+    chrome.tabs.get(tabId, (tab) => {
+      if (chrome.runtime.lastError || !tab) { reject(new Error('tab not found')); return; }
+      if (tab.status === 'complete') { resolve(); return; }
+      const timer = setTimeout(() => {
+        chrome.tabs.onUpdated.removeListener(listener);
+        reject(new Error('timeout'));
+      }, 20000);
+      function listener(id, info) {
+        if (id === tabId && info.status === 'complete') {
+          clearTimeout(timer);
+          chrome.tabs.onUpdated.removeListener(listener);
+          resolve();
+        }
+      }
+      chrome.tabs.onUpdated.addListener(listener);
+    });
+  });
+}
+
 // ───── 初期化 ─────
 
 let scannedAssignments = [];
@@ -310,7 +334,7 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
   showView('login');
 });
 
-// ───── スキャン (v4変更点: アクティブタブではなく全manabaタブを検索) ─────
+// ───── スキャン ─────
 
 document.getElementById('scan-btn').addEventListener('click', async () => {
   const notOnManaba = document.getElementById('not-on-manaba');
@@ -321,36 +345,38 @@ document.getElementById('scan-btn').addEventListener('click', async () => {
   btn.textContent = 'スキャン中...';
   setStatus('');
 
+  let openedTabId = null;
+
   try {
-    // 未提出一覧ページを優先、なければ他の manaba タブを使用
     const unsubmittedTabs = await chrome.tabs.query({ url: 'https://cit.manaba.jp/ct/home_library_query*' });
     const anyManabaTabs = await chrome.tabs.query({ url: 'https://cit.manaba.jp/*' });
-    const tab = unsubmittedTabs[0] ?? anyManabaTabs[0];
 
-    if (!tab) {
+    // manabaのタブが1つも開いていない（未ログイン or 未アクセス）
+    if (unsubmittedTabs.length === 0 && anyManabaTabs.length === 0) {
       notOnManaba.style.display = '';
       area.style.display = 'none';
       return;
     }
     notOnManaba.style.display = 'none';
 
-    // content script が動いているか確認。動いていなければ inject する
-    let result;
-    try {
-      result = await chrome.tabs.sendMessage(tab.id, { type: 'EXTRACT' })
-        .catch(() => null);
-    } catch {
-      result = null;
+    let tabId;
+    if (unsubmittedTabs.length > 0) {
+      // 未提出一覧タブがすでに開いていればそれを使う
+      tabId = unsubmittedTabs[0].id;
+    } else {
+      // /home など他のmanabaタブのみの場合 → 未提出一覧をバックグラウンドで開いて取得
+      btn.textContent = '課題一覧を取得中...';
+      const tab = await chrome.tabs.create({ url: MANABA_UNSUBMITTED_URL, active: false });
+      openedTabId = tab.id;
+      await waitForTabLoad(tab.id);
+      tabId = tab.id;
     }
 
+    // content script が動いているか確認。動いていなければ inject する
+    let result = await chrome.tabs.sendMessage(tabId, { type: 'EXTRACT' }).catch(() => null);
     if (!result) {
-      // 動的インジェクト（初回やリロード直後）
-      await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        files: ['content.js'],
-      });
-      result = await chrome.tabs.sendMessage(tab.id, { type: 'EXTRACT' })
-        .catch(() => null);
+      await chrome.scripting.executeScript({ target: { tabId }, files: ['content.js'] });
+      result = await chrome.tabs.sendMessage(tabId, { type: 'EXTRACT' }).catch(() => null);
     }
 
     scannedAssignments = result?.assignments ?? [];
@@ -363,6 +389,9 @@ document.getElementById('scan-btn').addEventListener('click', async () => {
   } catch (err) {
     setStatus('スキャン中にエラーが発生しました: ' + err.message, true);
   } finally {
+    if (openedTabId !== null) {
+      chrome.tabs.remove(openedTabId).catch(() => {});
+    }
     btn.disabled = false;
     btn.textContent = '🔍 manabaをスキャン';
   }

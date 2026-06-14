@@ -154,14 +154,12 @@ async function autoSync() {
     const auth = await getValidToken();
     if (!auth) return;
 
-    // 未提出一覧ページを優先、なければ他の manaba タブ、なければバックグラウンドで開く
+    // 未提出一覧タブがあればそれを使う。なければバックグラウンドで開く
     const unsubmittedTabs = await chrome.tabs.query({ url: `${MANABA_UNSUBMITTED_URL}*` });
-    const anyManabaTabs = await chrome.tabs.query({ url: 'https://cit.manaba.jp/*' });
-    const existingTab = unsubmittedTabs[0] ?? anyManabaTabs[0];
 
     let tabId;
-    if (existingTab) {
-      tabId = existingTab.id;
+    if (unsubmittedTabs.length > 0) {
+      tabId = unsubmittedTabs[0].id;
     } else {
       const tab = await chrome.tabs.create({ url: MANABA_UNSUBMITTED_URL, active: false });
       openedTabId = tab.id;
