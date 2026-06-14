@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "manaba 課題取り込み",
+  "version": "4.0",
+  "description": "manabaの課題を課題管理アプリに自動登録します",
+  "permissions": ["storage", "activeTab", "scripting", "tabs", "notifications"],
+  "host_permissions": [
+    "https://cit.manaba.jp/*",
+    "https://identitytoolkit.googleapis.com/*",
+    "https://securetoken.googleapis.com/*",
+    "https://firestore.googleapis.com/*",
+    "https://project-chickenmark2-001.web.app/*",
+    "https://project-chickenmark2-001.firebaseapp.com/*",
+    "https://task-manager-v3-drab.vercel.app/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": { "48": "icon.png" },
+    "default_title": "manaba 課題取り込み"
+  },
+  "icons": { "48": "icon.png" },
+  "content_scripts": [
+    {
+      "matches": ["https://cit.manaba.jp/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

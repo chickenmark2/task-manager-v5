@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 360px;
+    font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Meiryo', sans-serif;
+    font-size: 14px;
+    color: #1e293b;
+    background: #f8fafc;
+  }
+  .header {
+    background: #6366f1;
+    color: white;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .header h1 { font-size: 15px; font-weight: 700; }
+  .header .user { font-size: 11px; opacity: 0.85; margin-left: auto; }
+  .uid-label { font-size: 9px; opacity: 0.65; margin-left: auto; margin-top: 2px; font-family: monospace; }
+  .content { padding: 16px; }
+  .card {
+    background: white;
+    border-radius: 10px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-bottom: 12px;
+  }
+  label { display: block; font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 4px; }
+  input {
+    width: 100%;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 14px;
+    font-family: inherit;
+    margin-bottom: 10px;
+  }
+  input:focus { outline: none; border-color: #6366f1; }
+  .btn {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-primary { background: #6366f1; color: white; }
+  .btn-primary:hover { background: #4f46e5; }
+  .btn-primary:disabled { background: #a5b4fc; cursor: default; }
+  .btn-outline {
+    background: none;
+    border: 1.5px solid #e2e8f0;
+    color: #64748b;
+    margin-top: 8px;
+  }
+  .btn-outline:hover { border-color: #6366f1; color: #6366f1; }
+  .btn-danger { background: none; border: none; color: #ef4444; font-size: 12px; cursor: pointer; font-family: inherit; }
+  .error { color: #ef4444; font-size: 12px; margin-top: 6px; }
+  .success { color: #16a34a; font-size: 12px; margin-top: 6px; }
+
+  /* Assignment list */
+  .assignment-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 0;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .assignment-item:last-child { border-bottom: none; }
+  .assignment-item input[type=checkbox] { margin-top: 2px; width: 16px; height: 16px; cursor: pointer; }
+  .assignment-info { flex: 1; }
+  .assignment-title { font-size: 13px; font-weight: 600; line-height: 1.4; margin-bottom: 2px; }
+  .assignment-meta { font-size: 11px; color: #64748b; }
+  .badge {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 100px;
+    font-size: 10px;
+    font-weight: 700;
+    margin-right: 4px;
+  }
+  .badge-report  { background: #e0e7ff; color: #4338ca; }
+  .badge-quiz    { background: #fef3c7; color: #92400e; }
+  .badge-drill   { background: #dcfce7; color: #166534; }
+  .badge-survey  { background: #e0f2fe; color: #0369a1; }
+  .badge-project { background: #fce7f3; color: #9d174d; }
+  .badge-other   { background: #f1f5f9; color: #64748b; }
+  .deadline-red { color: #ef4444; }
+  .deadline-orange { color: #ea580c; }
+  .deadline-yellow { color: #ca8a04; }
+  .empty { text-align: center; color: #94a3b8; padding: 20px 0; font-size: 13px; }
+  #scan-btn { margin-bottom: 8px; }
+  .notice {
+    font-size: 12px;
+    color: #64748b;
+    background: #f1f5f9;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    line-height: 1.6;
+  }
+  .footer { display: flex; justify-content: space-between; align-items: center; }
+</style>
+</head>
+<body>
+
+<!-- ログイン画面 -->
+<div id="login-view">
+  <div class="header">
+    <span>📚</span>
+    <h1>manaba 課題取り込み</h1>
+  </div>
+  <div class="content">
+    <div class="notice">
+      課題管理アプリと同じ<strong>メールアドレスとパスワード</strong>でログインしてください。<br>
+      Googleログインのみの場合は、Firebase コンソールでパスワードを設定してください。
+    </div>
+    <div class="card">
+      <form id="login-form">
+        <label for="email">メールアドレス</label>
+        <input type="email" id="email" placeholder="example@email.com" required>
+        <label for="password">パスワード</label>
+        <input type="password" id="password" placeholder="6文字以上" required>
+        <p id="login-error" class="error"></p>
+        <button type="submit" class="btn btn-primary" id="login-btn">ログイン</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- メイン画面 -->
+<div id="main-view" style="display:none">
+  <div class="header" style="flex-wrap:wrap; row-gap:0;">
+    <span>📚</span>
+    <h1>課題取り込み</h1>
+    <span class="user" id="user-label"></span>
+    <span class="uid-label" id="uid-label" style="width:100%; padding-left:24px;"></span>
+  </div>
+  <div class="content">
+    <div id="not-on-manaba" class="notice" style="display:none">
+      ⚠️ manabaのタブが開いていません。<br>
+      ブラウザでmanabaを開いてから「スキャン」してください。<br>
+      未提出課題を全て取り込むには<strong>未提出課題一覧</strong>ページが最適です:<br>
+      <code>cit.manaba.jp/ct/home_library_query</code>
+    </div>
+
+    <button class="btn btn-primary" id="scan-btn">🔍 manabaをスキャン</button>
+
+    <div id="assignments-area" style="display:none">
+      <div class="card">
+        <div id="assignments-list"></div>
+        <p id="no-assignments" class="empty" style="display:none">
+          課題が見つかりませんでした。<br>ホームページや課題一覧ページを開いてください。
+        </p>
+      </div>
+      <button class="btn btn-primary" id="import-btn" style="display:none">
+        ✅ 選択した課題を登録する
+      </button>
+      <p id="import-status" class="success" style="display:none"></p>
+    </div>
+
+    <div class="footer" style="margin-top: 4px;">
+      <span></span>
+      <button class="btn-danger" id="logout-btn">ログアウト</button>
+    </div>
+  </div>
+</div>
+
+<script src="popup.js"></script>
+</body>
+</html>
