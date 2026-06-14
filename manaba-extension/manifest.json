@@ -11,7 +11,8 @@
     "https://firestore.googleapis.com/*",
     "https://project-chickenmark2-001.web.app/*",
     "https://project-chickenmark2-001.firebaseapp.com/*",
-    "https://task-manager-v3-drab.vercel.app/*"
+    "https://task-manager-v3-drab.vercel.app/*",
+    "https://task-manager-v4-six.vercel.app/*"
   ],
   "background": {
     "service_worker": "background.js"

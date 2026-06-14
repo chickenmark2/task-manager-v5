@@ -208,8 +208,8 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (
     url.includes('project-chickenmark2-001.web.app') ||
     url.includes('project-chickenmark2-001.firebaseapp.com') ||
-    url.includes('task-manager-v3-drab.vercel.app')
-    // v4のVercel URLが決まったらここに追加
+    url.includes('task-manager-v3-drab.vercel.app') ||
+    url.includes('task-manager-v4-six.vercel.app')
   ) {
     autoSync();
   }
