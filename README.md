@@ -35,13 +35,11 @@
 
 ## Chrome 拡張機能のインストール
 
-**v4 の拡張機能がそのまま使えます。**
+[![Download](https://img.shields.io/badge/Download-manaba--extension--v5.zip-6366f1?style=for-the-badge&logo=googlechrome)](https://github.com/chickenmark2/task-manager-v5/releases/download/v5.0.0/manaba-extension-v5.zip)
 
-[![Download](https://img.shields.io/badge/Download-manaba--extension--v4.zip-6366f1?style=for-the-badge&logo=googlechrome)](https://github.com/chickenmark2/task-manager-v4/releases/download/v4.0.0/manaba-extension-v4.zip)
+**[→ Releases ページからダウンロード](https://github.com/chickenmark2/task-manager-v5/releases/tag/v5.0.0)**
 
-**[→ Releases ページからダウンロード](https://github.com/chickenmark2/task-manager-v4/releases/tag/v4.0.0)**
-
-1. 上のボタンから `manaba-extension-v4.zip` をダウンロードして解凍
+1. 上のボタンから `manaba-extension-v5.zip` をダウンロードして解凍
 2. Chrome で `chrome://extensions` を開く
 3. 右上の「デベロッパーモード」をオン
 4. 「パッケージ化されていない拡張機能を読み込む」→ 解凍した `manaba-extension` フォルダを選択
